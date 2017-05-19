@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body { padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="../libraries/p5.js"></script>
+<script language="javascript" src="../libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="../libraries/p5.sound.js"></script>-->
+<!-- <script src="../libraries/jquery-3.2.1.js"></script> -->
+<title>PN stats</title>  
+<script language="javascript" type="text/javascript">
+
+var xoff=0;
+var inc=0.000001;
+
+var detail=200;
+var stats = new Array(detail);
+
+
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+	drawingContext.imageSmoothingEnabled = false;
+	background(31,31,41);
+
+	for(var i=0; i<stats.length; i++) {
+		stats[i]=0;
+	}
+}
+function draw() {
+	background(31,31,41);
+	
+	for(var ii=0; ii<5; ii++) {
+		for(var i=0; i<detail; i++) {
+			r = floor( noise(xoff)*detail );
+			stats[r]++;
+
+			xoff+=inc;
+			//xoff+=random(100);
+		}
+	}
+
+	var max = getNewMax();
+
+	x=width/detail;
+	for (var i=0; i<detail; i++) {
+		ypos = map( stats[i], 0,max, 0, 0.97*height );
+		noStroke();
+		rect(x*i, height-ypos, x, height);
+	}
+}
+
+function getNewMax() {
+	var max=0;
+	var maxi=0;
+	for( var i=0; i<detail; i++) {
+		if(stats[i]>max) {
+			max=stats[i];
+			maxi=i;
+		}
+	}
+	console.log(maxi+": "+max);
+	return max;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html>

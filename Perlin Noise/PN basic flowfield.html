@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body { padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="../libraries/p5.js"></script>
+<script language="javascript" src="../libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="../libraries/p5.sound.js"></script>-->
+<title>PN flowfield</title>  
+<script language="javascript" type="text/javascript">
+
+var piMultiply=1;
+var inc=0.035; //roznica pomiedzy blokami na calym canvasie
+var zinc=0.02; // zmiana co klatke
+var zChange=0.05; // zmiana przy kliknieciu strzalkami
+var amountOfParticles=1000;
+var scl=4;
+var particleOpacity=5; /* 0-100 */
+
+var zoff=0;
+var cols, rows;
+
+var fps;
+
+var flowField;
+var particles = [];
+
+function setup() {
+	//createCanvas(400, 300);
+	createCanvas(800, 600);
+	//createCanvas(scl*cols-1, scl*rows-1);
+	//createCanvas(windowWidth, windowHeight-50);
+	pixelDensity(1);
+
+	cols = floor(width/scl)+1;
+	rows = floor(height/scl)+1;
+	flowField = new Array(cols*rows);
+
+	fps = createP('');
+
+	for(var i=0; i<amountOfParticles; i++) { particles.push(new particlesClass()); }
+
+	
+
+	background(31,31,41);
+
+	calcFlowField();
+}
+function draw() {
+	//background(0);
+	if(frameCount%10==0) { calcFlowField(); }
+	//calcFlowField();
+
+	stroke(150,150,255, particleOpacity);
+	for (var i=0; i<particles.length; i++) {
+		particles[i].move(flowField);
+		particles[i].draw();
+	}
+
+	fps.html("FPS: "+floor(frameRate())+" frameCount:"+frameCount+" zinc:"+zinc+" Qty:"+particles.length+" ");
+}
+function calcFlowField() {
+	noStroke();
+	for(var x=0; x<cols; x++) {
+		for(var y=0; y<rows; y++) {
+			var index = (x+y*cols);
+			var r = noise(x*inc, y*inc, zoff);//*255;
+
+			var vec = p5.Vector.fromAngle(r*TWO_PI*piMultiply);
+			var index = y*cols+x;
+			flowField[index] = vec;
+
+			push();
+				//translate( (x+0.5)*scl, (y+0.5)*scl )
+				rotate(vec.heading());
+				//strokeWeight(0.5);
+				//line( -scl/2,0, scl/2,0 );
+			pop();
+		}
+	}
+	zoff += zinc;	
+}
+
+function keyPressed() {
+	if(keyCode == 32) { addParticles(); }
+	if(keyCode == LEFT_ARROW) { removeParticles(); }
+
+	if(keyCode == UP_ARROW) { zinc+=zChange; background(31,31,41, 5); calcFlowField(); }
+	if(keyCode == DOWN_ARROW) { zinc-=zChange; background(31,31,41, 5); calcFlowField(); }
+}
+function addParticles() {
+	for(var i=0; i<1000; i++) {
+		tempParticle = new particlesClass()
+		tempParticle.pos.x = random(width);
+		tempParticle.pos.y = random(height);
+		particles.push(tempParticle)
+	}
+}
+function removeParticles() {
+	for(var i=particles.length-1; i>=0; i--) {
+		if(particles.readyToRemove==true) { particles.splice(i, 1); }
+	}
+	console.log(particles.length);
+}
+
+function particlesClass() {
+	this.pos = createVector(random(width),random(height));
+	this.prevPos = this.pos.copy();
+	this.errors=0;
+	this.readyToRemove=false;
+
+	this.move = function(flowField) {
+		var x = floor(this.pos.x/scl);
+		var y = floor(this.pos.y/scl);
+		var index = y*cols+x;
+
+		force=flowField[index];
+
+		this.prevPos = this.pos;
+		this.pos.add(force);
+
+		if (this.prevPos==this.pos) {
+			this.errors++;
+			if(this.errors>5) { this.readyToRemove=true; }
+		}
+
+		this.edges();
+	}
+	this.edges = function() {
+		if(this.pos.x > width) { this.pos.x=0; this.prevPos.x=this.pos.x; }
+		if(this.pos.y > height) { this.pos.y=0; this.prevPos.y=this.pos.y; }
+		if(this.pos.x < 0) { this.pos.x=width; this.prevPos.x=this.pos.x; }
+		if(this.pos.y < 0) { this.pos.y=height; this.prevPos.y=this.pos.y; }
+	}
+
+	this.draw = function() {
+		line(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y);
+		//point(this.pos.x, this.pos.y);
+	}
+
+}
+
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html>
