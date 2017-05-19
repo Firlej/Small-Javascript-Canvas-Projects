@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> body{ padding: 0; margin: 0; } </style>
+<script language="javascript" type="text/javascript" src="../libraries/p5.js"></script>
+<script language="javascript" src="../libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>TSP - mix</title>  
+<script language="javascript" type="text/javascript">
+
+var citiesAmount = 10;
+var cities = [];
+var bestRoute = [];
+var bestDist=0;
+
+var r=5;
+
+var p;
+function setup() {
+	var canvas = createCanvas(800, 600);
+	background(40, 60, 80);
+
+	div1 = createElement('div','');
+	div1.position(width+15, 0);
+	h1 = createElement('h1', 'TSP - mix');
+	h1.parent(div1);
+	p = createElement('p','');
+	p.parent(div1);
+
+	addCities();
+}
+
+function draw() {
+	background(40, 60, 80);
+
+	// METHOD OF CHANGE
+	cities = mix(cities);
+
+	drawRoute(cities, 1, color(255,255,255, 50) );
+	drawRoute(bestRoute, 3, color(255,0,0, 100) );
+
+	drawCities();
+	
+	calcDist();
+
+	p.html( "Cities: "+citiesAmount+
+			"<br />Best: "+floor(bestDist)+
+			"<br />Frames: "+frameCount
+		   );
+}
+
+function addCities() {
+	for(var i=0; i<citiesAmount; i++) {
+		tempCity = new cityClass();
+		cities.push(tempCity);
+	}
+
+	var d=0;
+	for(var i=0; i<cities.length-1; i++) {
+		d += dist(cities[i].x, cities[i].y, cities[i+1].x, cities[i+1].y);
+	}
+	bestDist = d;
+	bestRoute = cities.slice(0);
+	//console.log("Start "+floor(bestDist));
+}
+function drawCities() {
+	strokeWeight(1);
+	stroke('red');
+	fill('red');
+	for(var i=0; i<cities.length; i++) {
+		cities[i].draw();
+	}
+}
+function drawRoute(array, strokee, colorr) {
+	noFill();
+	strokeWeight(strokee);
+	stroke(colorr);
+	beginShape();
+	for(var i=0; i<array.length; i++) {
+		vertex(array[i].x, array[i].y);
+	}
+	endShape(CLOSE);
+}
+
+function cityClass() {
+	this.x = random(width); 
+	this.y = random(height);
+
+	this.draw = function() {
+		ellipse(this.x, this.y, r, r);
+	}
+}
+
+function calcDist() {
+	var d = 0;
+
+	for(var i=0; i<cities.length-1; i++) {
+		d += dist(cities[i].x, cities[i].y, cities[i+1].x, cities[i+1].y);
+	}
+	d += dist(cities[cities.length-1].x, cities[cities.length-1].y, cities[0].x, cities[0].y);
+
+	if (bestDist>d) {
+		bestDist=d;
+		bestRoute = cities.slice(0);
+		console.log(floor(bestDist)+" i: "+frameCount);
+	}
+}
+function mix(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html> 
