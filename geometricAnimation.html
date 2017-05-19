@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body{ padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" src="libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>Geometric animation</title>  
+<script language="javascript" type="text/javascript">
+var a=0;
+var mlp=100;
+var mlp2=1/5;
+var howMany=6;
+function setup() {
+	//createCanvas(400, 400);
+	createCanvas(windowHeight, windowHeight);
+	colorMode(HSB, 255, 255, 255);
+}
+var h=0;
+function draw() {
+	background(31, 0, 80);
+	strokeWeight(3); fill(floor(noise(h)*255), 255, 255);
+	push();
+		translate(width/2, height/2);
+		beginShape();
+		for (var i=0; i<howMany; i++) {
+			vertex( mlp*sin(TWO_PI*i/howMany), mlp*cos(TWO_PI*i/howMany) );
+			vertex( mlp*mlp2*sin(TWO_PI*i/howMany+a), mlp*mlp2*cos(TWO_PI*i/howMany+a) );
+		}
+		endShape(CLOSE);
+	pop();
+	a+=0.05;
+	mlp2=sin(a/2)*2;
+	h+=0.01;
+}
+
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html>

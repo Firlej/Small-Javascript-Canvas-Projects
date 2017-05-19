@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body{ padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" src="libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>Matrix</title>  
+<script language="javascript" type="text/javascript">
+
+var cols, rows;
+var grid = [];
+var streams = [];
+var txtSize = 15;
+
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+	frameRate(40);
+	cols = floor(width/txtSize)+1;
+	rows = floor(height/txtSize)+1;
+
+	for (var x=0; x<cols; x++) {
+		for(var y=0; y<rows; y++) {
+			var index = y*cols + x;
+			grid.push(new symbolClass());
+		}
+	}
+
+	for (var x=0; x<cols; x++) {
+		streams[x] = {
+			tail: floor(random(10, 30)),
+			y: floor(random(-10, rows)),
+			speed: floor(random(1,3))
+		}
+	}
+
+}
+
+function draw() {
+	background(5);
+
+	textSize(txtSize);
+	fill(0, 230, 80, 180);
+	for (var x=0; x<cols; x++) {
+		for(var y=0; y<rows; y++) {
+			var symbol = grid[y*cols+x];
+
+			var dist = streams[x].y-y;
+			if(random()>0.997) { symbol.value = randomSymbol(); }
+			
+			if (dist==0) {
+				fill(250, 250, 250, 230 );
+				symbol.value = randomSymbol();
+				text(symbol.value, x*txtSize, y*txtSize);
+			} else if (streams[x].y>y) {
+				fill(0, 230, 80, map(abs(dist), 0, streams[x].tail, 230, 0) );
+				text(symbol.value, x*txtSize, y*txtSize);
+			}
+			
+			
+		}
+	}
+
+	for(var x=0; x<streams.length; x++) {
+		streams[x].y++;
+		if (streams[x].y>rows+streams[x].tail) {
+			streams[x].y = 0; //floor(random(rows));
+			streams[x].speed = floor(random(1,3))
+			for(var y=0; y<rows; y++) {
+				var symbol = grid[y*cols+x];
+				symbol.value = " ";
+			}
+		}
+	}
+}
+
+function symbolClass() {
+	this.value = randomSymbol();
+}
+
+function randomSymbol() { return String.fromCharCode(0x30A0+round(random(0,96))); }
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html>

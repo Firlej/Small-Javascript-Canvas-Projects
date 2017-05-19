@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> body{ padding: 0; margin: 0; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" src="libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>Mandelbrot Set</title>  
+<script language="javascript" type="text/javascript">
+var maxIterations = 100;
+var infinity = 500;
+var zoom=1.5;
+var centerx = 0; //1/4; 
+var centery = 0;
+function setup() {
+  createCanvas(windowHeight, windowHeight);
+  pixelDensity(1);
+
+  //noLoop();
+}
+function draw() {
+  loadPixels();
+
+  for (var x=0; x<width; x++) {
+    for (var y=0; y<height; y++) {
+      var a = map(x, 0, width, centerx-zoom, centerx+zoom);
+      var b = map(y, 0, width, centery-zoom, centery+zoom);
+      
+      var ca = a;
+      var cb = b;
+      
+      var z=0;
+      
+      for (var i=0; i<maxIterations; i++) {
+        var tempA = a*a - b*b;
+      	var tempB = 2*a*b;
+        a = tempA + ca;
+        b = tempB + cb;
+        
+        if(a+b > infinity) { break; }
+      }
+      if (i>=maxIterations) {
+      	var bright=0;
+      } else {
+      	var bright = map(i, 0, infinity, 0, 1);
+      	bright = sqrt(bright)*255;
+	  }
+      var pix = (x + y*width)*4;
+      pixels[pix+0] = bright;
+      pixels[pix+1] = bright;
+      pixels[pix+2] = bright;
+      pixels[pix+3] = 255;
+    }
+  }
+  updatePixels();
+  //zoom-=0.05;
+}
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html>

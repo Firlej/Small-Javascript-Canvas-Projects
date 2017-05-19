@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Blue Rain</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Language" content="pl" />
+</head>
+
+<body bgcolor="#AAAAFF">
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+	var canvas;
+	var canvasContext;
+
+	var rains = [];
+	var particleList = [];
+
+	function rainClass() {
+		this.x = 100;
+		this.y = 50;
+		this.velY = 1;
+		this.sizeX = 2;
+		this.sizeY = 15+ Math.floor( Math.random() * 10 );
+
+		this.move = function() {
+			this.y += this.velY;
+			this.velY *= 1.004;
+			if (this.y >= canvas.height) { particleExplosion(this.x); this.reset(); }
+		}
+		this.draw = function() {
+			drawRect(this.x, this.y, this.sizeX, this.sizeY, '#b7d8e5');
+		}
+		this.reset = function() {
+			this.y = -this.sizeY - Math.random() * 1200;
+			this.x = Math.random() * canvas.width;
+			this.velY = 1 + Math.random()/3;
+		}
+	}
+	function particleClass() {
+		this.X = 100;
+		this.Y = 100;
+		this.velX = 1;
+		this.velY = 3;
+		this.Size = 30;
+		this.lifeSpan = 300;
+		this.readyToRemove = false;
+		this.Color = 'white';
+
+		this.move = function() {
+			this.X += this.velX;
+			this.Y += this.velY; 
+
+			this.velY += 0.1;
+
+			if (this.X > canvas.width-this.Size) { this.velX *= -1; }
+			if (this.X < 0+this.Size) { this.velX *= -1; }
+			if (this.Y > canvas.height-this.Size) { this.velY *= -1; this.velY *= 0.8; }
+			if (this.Y < 0+this.Size) { this.velY *= -1; }
+
+
+			if (this.X > canvas.width-this.Size) { this.X = canvas.width-this.Size; }
+			if (this.Y > canvas.height-this.Size) { this.Y = canvas.height-this.Size; }
+			if (this.X < 0+this.Size) { this.X = this.Size; }
+			if (this.Y < 0+this.Size) { this.Y = this.Size; }
+		}
+		this.draw = function() {
+			this.Size = + 2 * this.lifeSpan / 60  ;
+			if (this.Size>0) { drawArc(this.X, this.Y, this.Size, this.Color); }
+		}
+	}
+	function particleExplosion(x) {
+		for (var i=0; i<5; i++) {
+			addSplash(x);
+		}
+	}
+	function addSplash(x) {
+		var tempParticle = new particleClass();
+		tempParticle.X = x;
+		tempParticle.Y = canvas.height+50;
+		tempParticle.velX = 1 - Math.random() * 2;
+		tempParticle.velY = 4 - Math.random() * 8;
+		tempParticle.lifeSpan = 60;
+		tempParticle.Size = + 2 * tempParticle.lifeSpan / 60;
+		alpha = 0.2;
+		tempParticle.Color ="rgba(51, 68, 255,"+alpha+")";
+
+		particleList.push(tempParticle);
+	}
+	function removeParticle() {
+		for (var i=0; i<particleList.length; i++) {
+			if (particleList[i].readyToRemove==true) {
+				particleList.splice(i,1);
+			}
+		}
+		console.log(particleList.length);
+	}
+	window.onload = function() {
+		canvas = document.getElementById('gameCanvas');
+		canvasContext = canvas.getContext('2d');
+
+		for (var i=0; i<200; i++) {
+			rains[i] = new rainClass();
+			if (Math.random() > 1/3) {
+				rains[i].x = Math.random() * canvas.width;
+				rains[i].y = Math.random() * canvas.height - 80;
+				rains[i].velY = 1 + Math.random()/2;
+			} else { rains[i].reset(); }
+		}
+
+		setInterval(updateAll, 1000/60);
+	}
+
+	function updateAll() {
+		drawRect(0,0, canvas.width, canvas.height, '#9999FF');
+		for (var i=0; i<rains.length; i++) { 
+			rains[i].move();
+			rains[i].draw();
+		}
+		for (var i=0; i<particleList.length; i++) {
+			if ( particleList[i].lifeSpan <=0 ) { particleList[i].readyToRemove = true; }
+			particleList[i].move();
+			particleList[i].draw();
+			particleList[i].lifeSpan--;
+			//drawText(particleList[i].lifeSpan, particleList[i].X+3, particleList[i].Y+3, 'white');
+		}
+		removeParticle();
+	}
+
+	function drawArc(drawX, drawY, drawRadius, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.beginPath();
+		canvasContext.arc(drawX, drawY, drawRadius, 0, Math.PI*2, true);
+		canvasContext.fill();
+	}
+	function drawRect(drawX, drawY, drawWidth, drawHeight, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillRect(drawX, drawY, drawWidth, drawHeight);
+	}
+	function drawText(drawText, drawX, drawY, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillText(drawText, drawX, drawY);
+	}
+</script>
+
+</body>
+
+</html>

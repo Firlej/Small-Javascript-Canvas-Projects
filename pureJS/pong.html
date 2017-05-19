@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Pong</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Language" content="pl" />
+</head>
+
+<body bgcolor="9999FF">
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+	var canvas;
+	var canvasContext;
+	
+	var ballX = 50; //pozycja poczatkowa x kulki
+	var ballY = 50; //pozycja poczatkowa y kulki
+	var ballSpeedX = 5; // ile pikseli na klatke ma sie poruszac kulka
+	var ballSpeedY = 2; // ile pikseli na klatke ma sie poruszac kulka
+	var ballSize = 10; // rozmiar kulki
+	var pointsAI = 0, pointsPlayer = 0;
+	
+	const PADDLE_HEIGHT = 100; // const rozmiar paneli
+	const PADDLE_WIDTH = 10; // const grubosc paneli
+	var paddle1Y = 300-(PADDLE_HEIGHT/2); // pozycja poczatkowa lewego panelu
+	var paddle2Y = 300-(PADDLE_HEIGHT/2); // pozycja poczatkowa drugiego panelu
+	const AI_SPEED = ballSpeedY*2; // ai speed czyli trudnosc przeciwnika uzalezniona od predkosci pionowej kulki
+	const WINNING_SCORE = 3; // wynik ktory konczy gre
+	var showWinScreen = false; // zmienna decydujaca o tym czy gra trwa czy ktos juz wygral
+	
+	// funkcja zwracajaca pozycje myszki dla pozycji lewego panelu (gracza)
+	function calculateMousePos(evt) {
+		var rect = canvas.getBoundingClientRect();
+		var root = document.documentElement;
+		var mouseX = evt.clientX - rect.left - root.scrollLeft;
+		var mouseY = evt.clientY - rect.top - root.scrollTop;
+		return {
+			x:mouseX,
+			y:mouseY
+		};
+	}
+	
+	window.onload = function() {
+		// console.log("Hello World!");
+		canvas = document.getElementById('gameCanvas');
+		canvasContext = canvas.getContext('2d');
+		
+		//wywolanie narysowania wszystkich elementow na stronie z okreslonym FPS
+		drawEverything();
+		setInterval( function() {moveEverything(); drawEverything();}, 1000/60);
+		
+		// kllikniecie myszki po skonczonej grze
+		canvas.addEventListener('mousedown', 
+			function(evt) {
+				if (showWinScreen) {
+					pointsAI = 0;
+					pointsPlayer = 0;
+					ballSpeedX = -ballSpeedX;
+					ballReset();
+					showWinScreen = false;
+				}
+			});
+		//wykrywanie pozycji myszki dla wykrywania pozycji lewego panelu
+		canvas.addEventListener('mousemove', 
+			function(evt) {
+				var mousePos = calculateMousePos(evt);
+				paddle1Y = mousePos.y-(PADDLE_HEIGHT/2);
+			});
+	}
+	// reset pozycji piłki przy zdobyciu punktu
+	function ballReset() {
+		ballX = canvas.width/2;
+		ballY = canvas.height/2;
+		ballSpeedX *= -1; // odrocenie zeby pilka leciala na tego kto poprzednio zdobyl punkt
+		ballSpeedY = 2;
+		// jesli ktos bedzie mial wystarczajaco punktow to ma pokazywac win screen
+		if (pointsPlayer >= WINNING_SCORE || pointsAI >= WINNING_SCORE) showWinScreen = true;
+		
+	}
+	// moveeverything jest wywolywane co jedna klatke gry razem z draw everythng
+	function moveEverything() {
+		ballX = ballX + ballSpeedX;
+		ballY = ballY + ballSpeedY;
+		// odbicie od lewej strony
+		if (ballY > paddle1Y && ballY < paddle1Y+PADDLE_HEIGHT) {
+			if (ballX < 0+ballSize+PADDLE_WIDTH) {
+				ballSpeedX = -ballSpeedX;
+				var deltaY = ballY - (paddle1Y+PADDLE_HEIGHT/2);
+				ballSpeedY = deltaY * 0.25;
+			}
+		} else { if (ballX < 0+ballSize) { pointsAI++; ballReset(); } }
+		// odbicie od prawej strony
+		if (ballY > paddle2Y && ballY < paddle2Y+PADDLE_HEIGHT) {
+			if (ballX > canvas.width-ballSize-PADDLE_WIDTH) {
+				ballSpeedX = -ballSpeedX;
+				var deltaY = ballY - (paddle2Y+PADDLE_HEIGHT/2);
+				ballSpeedY = deltaY * 0.25;
+			}
+		} else { if (ballX > canvas.width-ballSize) { pointsPlayer++; ballReset(); } }
+		//odbicia gora i dol
+		if (ballY >= canvas.height-ballSize) { ballSpeedY = -ballSpeedY; } // odbicie od dolu
+		if (ballY <= 0+ballSize) { ballSpeedY = -ballSpeedY; } // odbicie od gory
+		// AI
+		if (ballY > paddle2Y+(PADDLE_HEIGHT/2)) { paddle2Y+=AI_SPEED; }
+		if (ballY < paddle2Y+(PADDLE_HEIGHT/2)) { paddle2Y-=AI_SPEED; }
+	}
+	// wszystkie wywolania rysowania co kazda klatke
+	function drawEverything() {
+		// tlo
+		drawRect(0, 0, canvas.width, canvas.height, 'black');
+		//wroc jesli nie ma rysowac wszystkiego, bo ktos wygral
+		if (showWinScreen) { 
+			canvasContext.fillStyle = '#FFFFFF';
+			if (pointsPlayer >= WINNING_SCORE) { canvasContext.fillText("You won! Click to continue", canvas.width/2-50, 100); }
+			else if (pointsAI >= WINNING_SCORE) { canvasContext.fillText("You lost! Click to continue", canvas.width/2-50, 100); }
+			return;
+		}
+		// draw net na srodku ekranu
+		for (var i = 10; i <= canvas.width; i += 40) { drawRect(canvas.width/2-1, i, 2, 20, 'white'); }
+		// kulka
+		drawArc(ballX, ballY, ballSize, '#6666FF');
+		// lewy panel
+		drawRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, '#FFFFFF');
+		// prawy panel
+		drawRect(canvas.width-PADDLE_WIDTH, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, '#FFFFFF');
+		//liczniki punktow
+		canvasContext.fillText(pointsPlayer, canvas.width/2-100, 100);
+		canvasContext.fillText(pointsAI, canvas.width/2+100, 100);
+		//wyswietlanie predkosci pionowej kulki
+		canvasContext.fillText(ballSpeedY, 40, 20);
+	}
+	// funkcja rysujaca kola (srodekX, srodekY, promienKola, kolor)
+	function drawArc(drawX, drawY, drawRadius, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.beginPath();
+		// dane do .arc (pozycjax, pozycjay, promien kola, )
+		canvasContext.arc(drawX, drawY, drawRadius, 0, Math.PI*2, true);
+		canvasContext.fill();
+	}
+	// funkcja rysujaca prostokaty na stronie (pozycjaX, pozycjaY, szerokosc, wysokosc, kolor)
+	function drawRect(drawX, drawY, drawWidth, drawHeight, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillRect(drawX, drawY, drawWidth, drawHeight);
+	}
+
+</script>
+
+</body>
+
+</html>

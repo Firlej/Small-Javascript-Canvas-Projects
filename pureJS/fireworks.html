@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Fireworks - pure JS</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Language" content="pl" />
+</head>
+
+<body bgcolor="9999FF">
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+var canvas;
+var canvasContext;
+
+var ballList = [];
+var fireworksList = [];
+
+document.addEventListener('keydown', keyPressed);
+
+var leftArrowDown=false, rightArrowDown=false;
+function keyPressed(event) {
+	if (event.keyCode == 32) { }
+}
+window.onload = function() {
+	canvas = document.getElementById('gameCanvas');
+	canvasContext = canvas.getContext('2d');
+
+	for (var i=0; i<200; i++) {
+		addBall();
+	}
+
+	setInterval(updateAll, 1000/120);
+}
+
+var lastLoop; var fps;
+var frameCount=0;
+function updateAll() {
+	drawRect(0, 0, canvas.width, canvas.height, 'black');
+
+	if (frameCount%5==0) { shootFirework(); }
+	frameCount++;
+
+	for (var i=0; i<ballList.length; i++) {
+		if ( ballList[i].lifeSpan <=0 ) { ballList[i].readyToRemove = true; }
+		ballList[i].move();
+		ballList[i].draw();
+		ballList[i].lifeSpan--;
+	}
+	for (var i=0; i<fireworksList.length; i++) {
+		fireworksList[i].move();
+		fireworksList[i].draw();
+	}
+	removeElements();
+
+	var thisLoop = new Date().getTime();
+	fps =  Math.floor((1000/(thisLoop - lastLoop)).toString());
+	lastLoop = thisLoop;
+	//drawText(fps, 3, 10, 'white');
+}
+
+function ballClass() {
+	this.X = 100;
+	this.Y = 100;
+	this.velX = 4;
+	this.velY = 3;
+	this.Size = 30;
+	this.lifeSpan = 300;
+	this.readyToRemove = false;
+	this.Color = 'white';
+
+	this.move = function() {
+		this.X += this.velX;
+		this.Y += this.velY; 
+
+		this.velX *= 0.94;
+		this.velY *= 0.94;
+
+		this.velY += 0.05;
+
+		if (this.X > canvas.width-this.Size) { this.velX *= -1; }
+		if (this.X < 0+this.Size) { this.velX *= -1; }
+		if (this.Y > canvas.height-this.Size) { this.velY *= -1; this.velY *= Math.random()/2; }
+		if (this.Y < 0+this.Size) { this.velY *= -1; }
+
+		if (this.X > canvas.width-this.Size) { this.X = canvas.width-this.Size-1; }
+		if (this.Y > canvas.height-this.Size) { this.Y = canvas.height-this.Size-1; }
+		if (this.X < 0+this.Size) { this.X = 1+this.Size; }
+		if (this.Y < 0+this.Size) { this.Y = 1+this.Size; }
+	}
+	this.draw = function() {
+		this.Size = this.lifeSpan /10 ;
+		if (this.Size>0) { drawArc(this.X, this.Y, this.Size, this.Color); }
+	}
+}
+function fireworkClass() {
+	this.X = 100;
+	this.Y = 100;
+	this.velY = 3;
+	this.width = 1;
+	this.height = 10;
+	this.readyToRemove = false;
+	this.Color = 'white';
+	this.SpeedAtExplosion = 0.8;
+
+	this.colorSet = Math.floor(Math.random()*3);
+
+
+	this.move = function() {
+		this.Y -= this.velY;
+		this.velY *= 0.987;
+		if (this.velY <= this.SpeedAtExplosion) { this.readyToRemove=true; triggerExplosion(this.X, this.Y); }
+	}
+	this.draw = function() {
+		drawRect(this.X - this.width/2, this.Y-this.height, this.width, this.height, this.Color);
+	}
+}
+function triggerExplosion(x, y) { for(var i=0; i<50; i++) { addBall(x, y); } }
+function addBall(X,Y) {
+	var tempBall = new ballClass();
+	tempBall.X = X;
+	tempBall.Y = Y;
+	var velocityVariable = 3.6;
+	tempBall.velX = velocityVariable - Math.random() * velocityVariable * 2; 
+	tempBall.velY = velocityVariable - Math.random() * velocityVariable * 2; 
+	tempBall.lifeSpan = 30 + Math.floor( Math.random() * 30 );
+
+	var random = Math.floor(Math.random()*4);
+	if (random == 0) { tempBall.Color = '#fb1717'; }
+	else if (random == 1) { tempBall.Color = '#f0a20e'; }
+	else if (random == 2) { tempBall.Color = '#d8be1f'; }
+	else if (random == 3) { tempBall.Color = '#f37736'; }
+
+	ballList.push(tempBall);
+}
+function shootFirework() {
+	var tempF = new fireworkClass();
+	tempF.X = Math.random()*canvas.width;
+	tempF.Y = canvas.height;
+	tempF.SpeedAtExplosion = 0.75 + Math.random()/4;
+	tempF.velY = 2 + Math.random() * 5.5; 
+
+	fireworksList.push(tempF);
+}
+function removeElements() {
+	for (var i=0; i<ballList.length; i++) {
+		if (ballList[i].readyToRemove==true) {
+			ballList.splice(i,1);
+		}
+	}
+	for (var i=0; i<fireworksList.length; i++) {
+		if (fireworksList[i].readyToRemove==true) {
+			fireworksList.splice(i,1);
+		}
+	}
+}
+
+function drawArc(drawX, drawY, drawRadius, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.beginPath();
+	canvasContext.arc(drawX, drawY, drawRadius, 0, Math.PI*2, true);
+	canvasContext.fill();
+}
+function drawRect(drawX, drawY, drawWidth, drawHeight, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.fillRect(drawX, drawY, drawWidth, drawHeight);
+}
+function drawText(drawText, drawX, drawY, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.fillText(drawText, drawX, drawY);
+}
+</script>
+
+</body>
+
+</html>

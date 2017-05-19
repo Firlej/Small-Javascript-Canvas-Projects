@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style> body{padding: 0; margin: 0; overflow: hidden;} </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<!-- uncomment lines below to include extra p5 libraries -->
+<!--<script language="javascript" src="libraries/p5.dom.js"></script>-->
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>BallsWithNoOverlap</title>  
+<script language="javascript" type="text/javascript">
+var circles = [];
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+	
+	background(20, 20, 20);
+
+	background(20, 20, 20);
+}
+function draw() {
+	var randomMin = 120;
+	var fails=0;
+	while ( circles.length < 5000 ) {
+		var circle = { x: random(width), y: random(height), r: randomMin }
+		var thisCircleIsValid = true;
+		console.log(circles.length);
+		for (var j=0; j<circles.length; j++) {
+			if (circle.x-circle.r<=0 || circle.y-circle.r<=0 || circle.x+circle.r>=width || circle.y+circle.r>=height) { thisCircleIsValid=false; break; }
+			var d = dist(circle.x, circle.y, circles[j].x, circles[j].y);
+			if ( d < circle.r+circles[j].r ) {
+				if (d+circle.r > circles[j].r && d+circles[j].r > circle.r) {
+					thisCircleIsValid = false; break;
+				}
+			}
+		}
+		if (thisCircleIsValid==true) { circles.push(circle); drawCircle(circle); break; } else { fails++; }
+		if (fails>100) { randomMin--; fails=0; }
+		if (randomMin<2) { randomMin=15; } //console.log( "Koniec: "+circles.length); break; }
+	}
+
+}
+function drawCircle(c) {
+	//fill( random(160,255), random(0,70), random(0,70), 100);
+	fill(random(0,100), random(160,255), random(0,100), 30);
+	//fill(random(255), random(255), random(255), 100);
+	stroke(0, 0, 0, 20);
+	ellipse(c.x, c.y, c.r*2, c.r*2);
+}
+</script>
+</head>
+
+<body>
+</body>
+</html>

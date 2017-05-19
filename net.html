@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body { padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<!--<script language="javascript" src="libraries/p5.dom.js"></script>-->
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>Net</title>  
+<script language="javascript" type="text/javascript">
+var balls = [];
+var xxx=1;
+function setup() {
+	createCanvas(windowWidth*xxx, windowHeight*xxx);
+	
+	for (var i=0; i<150; i++) { addBall(); }
+}
+
+function draw() {
+	background(31,31,41);
+	var maxDist=100;
+	for(var i=0; i<balls.length; i++) {
+		for(var j=i+1; j<balls.length; j++) {
+			if (i != j) {
+				var d = dist(balls[i].x, balls[i].y, balls[j].x, balls[j].y);
+				if (d<maxDist) {
+					var opacity = 1-sqrt(d/maxDist);
+					stroke('rgba(26,163,209,'+opacity+')');
+					line(balls[i].x, balls[i].y, balls[j].x, balls[j].y);
+				}
+			}
+		}
+	}
+	for(var i=0; i<balls.length; i++) {
+		balls[i].move();
+		balls[i].draw();
+	}
+}
+function windowResized() {
+  resizeCanvas(windowWidth*xxx, windowHeight*xxx);
+}
+function mouseMoved() {
+	var vecX = winMouseX-pwinMouseX;
+	var vecY = winMouseY-pwinMouseY;
+	for(var i=0; i<balls.length; i++) {
+		balls[i].x += 0.15*vecX*balls[i].z/10;
+		balls[i].y += 0.15*vecY*balls[i].z/10;
+	}
+}
+function addBall() {
+	var tempball = new ballClass();
+	tempball.x = random(width);
+	tempball.y = random(height);
+	tempball.z = random(1,10);
+	tempball.r = tempball.z/10*2+2;
+	var maxVel = 0.1;
+	tempball.velX = random(-maxVel, maxVel)*tempball.z;
+	tempball.velY = random(-maxVel, maxVel)*tempball.z;
+	balls.push(tempball);
+}
+function ballClass() {
+	this.x;
+	this.y;
+	this.z;
+	this.r;
+	this.velX;
+	this.velY;
+	//this.color = color(65,105,225);
+	this.color = 'rgba(26,163,209, 1)';
+	//this.color = color(random(255),random(255),random(255));
+
+	this.move = function() {
+		this.x += this.velX;
+		this.y += this.velY;
+
+		if (this.x < 0-this.r) { this.x=width+this.r; }
+		if (this.x > width+this.r) { this.x=0-this.r; }
+		if (this.y < 0-this.r) { this.y=height+this.r; }
+		if (this.y > height+this.r) { this.y=0-this.r; }
+	}
+	this.draw = function() {
+		fill(this.color);
+		noStroke();
+		ellipse(this.x, this.y, this.r*2, this.r*2);
+	}
+}
+</script>
+</head>
+
+<body bgcolor="#1f1f29">
+</body>
+</html>

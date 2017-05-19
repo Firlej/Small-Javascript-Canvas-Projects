@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Explosion Particles</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Language" content="pl" />
+</head>
+
+<body bgcolor="9999FF">
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+	var canvas;
+	var canvasContext;
+
+	var ballList = [];
+	var ball = new ballClass();
+
+	const KEY_W = 87;
+	const KEY_E = 69;
+	
+	document.addEventListener('keydown', keyPressed);
+
+	function keyPressed(event) {
+		if (event.keyCode == KEY_W) {
+			var randomX = Math.random();
+			var randomY = Math.random();
+			for (var i=0; i<200; i++) {
+			addBall(randomX, randomY);
+			}
+		}
+		else if (event.keyCode == KEY_E) { removeBall(); }
+		// console.log(event.keyCode);
+	}
+
+	function ballClass() {
+		this.X = 100;
+		this.Y = 100;
+		this.velX = 4;
+		this.velY = 3;
+		this.Size = 30;
+		this.lifeSpan = 300;
+		this.readyToRemove = false;
+		this.Color = 'white';
+
+		this.move = function() {
+			this.X += this.velX;
+			this.Y += this.velY; 
+
+			this.velY += 0.1;
+
+			if (this.X > canvas.width-this.Size) { this.velX *= -1; }
+			if (this.X < 0+this.Size) { this.velX *= -1; }
+			if (this.Y > canvas.height-this.Size) { this.velY *= -1; this.velY *= Math.random()/2; }
+			if (this.Y < 0+this.Size) { this.velY *= -1; }
+
+			if (this.X > canvas.width-this.Size) { this.X = canvas.width-this.Size-1; }
+			if (this.Y > canvas.height-this.Size) { this.Y = canvas.height-this.Size-1; }
+			if (this.X < 0+this.Size) { this.X = 1+this.Size; }
+			if (this.Y < 0+this.Size) { this.Y = 1+this.Size; }
+		}
+		this.draw = function() {
+			this.Size = 50 * this.lifeSpan / 300 ;
+			if (this.Size>0) { drawArc(this.X, this.Y, this.Size, this.Color); }
+		}
+	}
+	window.onload = function() {
+		canvas = document.getElementById('gameCanvas');
+		canvasContext = canvas.getContext('2d');
+
+		for (var i=0; i<500; i++) {
+			addBall();
+		}
+
+		setInterval(updateAll, 1000/60)
+	}
+	function addBall(randomX,randomY) {
+		var tempBall = new ballClass();
+		tempBall.X = randomX * canvas.width;
+		tempBall.Y = randomY * canvas.height/4;
+		tempBall.velX = 3 - Math.random() * 6; 
+		tempBall.velY = 3 - Math.random() * 6; 
+		tempBall.lifeSpan = 60 + Math.floor( Math.random() * 1 * 60 );
+
+		var random = Math.random();
+		if (random > 0.75) { tempBall.Color = '#fb1717'; }
+		else if (random > 0.5) { tempBall.Color = '#f0a20e'; }
+		else if (random > 0.25) { tempBall.Color = '#d8be1f'; }
+		else if (random > 0) { tempBall.Color = '#f37736'; }
+
+		ballList.push(tempBall);
+	}
+	function removeBall() {
+		for (var i=0; i<ballList.length; i++) {
+			if (ballList[i].readyToRemove==true) {
+				ballList.splice(i,1);
+			}
+		}
+	}
+	var lastLoop;
+	var fps;
+	function updateAll() {
+		drawRect(0, 0, canvas.width, canvas.height, 'black');
+		
+		for (var i=0; i<ballList.length; i++) {
+			if ( ballList[i].lifeSpan <=0 ) { ballList[i].readyToRemove = true; }
+			ballList[i].move();
+			ballList[i].draw();
+			ballList[i].lifeSpan--;
+			//drawText(ballList[i].lifeSpan, ballList[i].X+3, ballList[i].Y+3, 'white');
+		}
+		removeBall();
+
+		var thisLoop = new Date().getTime();
+		fps =  Math.floor((1000/(thisLoop - lastLoop)).toString());
+		lastLoop = thisLoop;
+		drawText(fps, 3, 10, 'white');
+	}
+
+	function drawArc(drawX, drawY, drawRadius, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.beginPath();
+		canvasContext.arc(drawX, drawY, drawRadius, 0, Math.PI*2, true);
+		canvasContext.fill();
+	}
+	function drawRect(drawX, drawY, drawWidth, drawHeight, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillRect(drawX, drawY, drawWidth, drawHeight);
+	}
+	function drawText(drawText, drawX, drawY, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillText(drawText, drawX, drawY);
+	}
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Space</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Language" content="pl" />
+</head>
+
+<body bgcolor="9999FF">
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+	var canvas, canvasContext;
+	
+	var ballX = 600; //pozycja poczatkowa x kulki
+	var ballY = 300; //pozycja poczatkowa y kulki
+	var ballSpeedX = 2; // ile pikseli na klatke ma sie poruszac kulka
+	var ballSpeedY = 3; // ile pikseli na klatke ma sie poruszac kulka
+	var ballSize = 10; // rozmiar kulki
+
+	const framesPerSecond = 60;	
+	const BRICK_HEIGHT = 20; // wysokosc cegielek
+	const BRICK_WIDTH = 40; // szerokosc cegielek
+	const BRICK_COLS = 20; // ile cegielek
+	const BRICK_ROWS = 15; // ile cegielek
+	const MISSING_ROWS_TOP = 2; // ile wierszy pustych od gory
+	const BRICK_GAP = 2 // ile px pomiedzy cegielkami
+	var brickGrid = new Array(BRICK_COLS*BRICK_ROWS);
+	var bricksLeft = 0;
+
+	var paddleX = 400; // pozycja paddle
+	
+	const PADDLE_HEIGHT = 10; // wysokosc paddle
+	const PADDLE_WIDTH = 150; // szerokosc paddle
+	const PADDLE_DIST_FROM_EDGE = 50; // odleglosc paddle od dolu
+	const SPEED_LIMIT_X = 9;
+	// funkcja resetujaca wszystkie bricks na ekranie przez ustawienie je na TRUE
+	function brickReset() {
+		var i;
+		for(i=0; i<MISSING_ROWS_TOP*BRICK_COLS; i++) {
+			brickGrid[i] = false;
+		}
+		bricksLeft = 0;
+		for(; i<BRICK_COLS*BRICK_ROWS; i++) {
+			brickGrid[i] = true;
+			bricksLeft++;
+			console.log( Math.random() );
+		}
+
+	}
+	// funkcja ustawiajaca mousex i mousey na lokalizacje myszki na ekranie
+	// i ustawie pozycje paddle x tam gdzie myszka
+	var mouseX=0, mouseY=0; // var przed funkcja zeby zmienne byly globalne
+	var brickUnderMouse; // zeby bylo globalne
+	function updateMousePos(evt) {
+		var rect = canvas.getBoundingClientRect();
+		var root = document.documentElement;
+
+		mouseX = evt.clientX - rect.left - root.scrollLeft;
+		mouseY = evt.clientY - rect.top - root.scrollTop;
+		brickUnderMouse = rowColToArrayIndex(Math.floor(mouseX/BRICK_WIDTH), Math.floor(mouseY/BRICK_HEIGHT));
+		paddleX = mouseX-(PADDLE_WIDTH/2);
+
+		//cheat przenoszocy pilke tam gdzie ostatnio poruszyles myszka
+		// ballX = mouseX; ballY = mouseY; ballSpeedX = 4; ballSpeedY = -4;
+	}
+	
+	// window onload uruchomi kod dopiero po calkowitym zaladowaniu strony
+	window.onload = function() {
+		canvas = document.getElementById('gameCanvas');
+		canvasContext = canvas.getContext('2d');
+		//wywolanie narysowania wszystkich elementow na stronie z okreslonym FPS
+		drawEverything();
+		setInterval( function() {moveEverything(); drawEverything();}, 1000/framesPerSecond);
+		
+		canvas.addEventListener('mousemove', updateMousePos);
+
+		brickReset(); //load ALL bricks
+	}
+	function ballReset() {
+		ballX = canvas.width/2;
+		ballY = canvas.height/2;
+		ballSpeedX = 5;
+	}
+	function ballHandling() { // odbijanie pilki od scian oraz samo motion
+		ballX += ballSpeedX;
+		ballY += ballSpeedY;
+		var	colUnderBall = Math.floor(ballX/BRICK_WIDTH);
+		var rowUnderBall = Math.floor(ballY/BRICK_HEIGHT);
+		// odbicie od lewej strony
+		if (ballX <= 0+ballSize) { ballSpeedX *= -1; ballX = 0+ballSize;  }
+		// odbicie od prawej strony
+		if (ballX >= canvas.width-ballSize) { ballSpeedX *= -1; ballX=canvas.width-ballSize; }
+		// odbicie od gory
+		if (ballY <= 0+ballSize) { ballSpeedY *= -1; ballY=0+ballSize; }
+		// odbicie od dolu
+		if (ballY >= canvas.height-ballSize) { ballSpeedY *= -1; ballY=canvas.height-ballSize; /* ballReset(); */ }
+
+	}
+	function ballPaddleHandling() { // zajmuje sie odbijaniem pilki od paddle
+		var paddleTopEdgeY = canvas.height-PADDLE_DIST_FROM_EDGE;
+		var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_HEIGHT;
+		var paddleLeftEdgeX = paddleX;
+		var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
+		if (ballY > paddleTopEdgeY - ballSize && // if ball is below top edge
+			ballY < paddleBottomEdgeY && // if ball is above bottom edge
+			ballX > paddleLeftEdgeX && //if ball is on the right of the left edge
+			ballX < paddleRightEdgeX) // if ball is on the left of right edge
+		{
+			var centerOfPaddleX = paddleX + PADDLE_WIDTH/2;
+			var ballDistFromPaddleCenterX = ballX - centerOfPaddleX;
+
+			ballSpeedX = ballDistFromPaddleCenterX * 0.20;
+			if (ballSpeedX < -SPEED_LIMIT_X) { ballSpeedX= -SPEED_LIMIT_X }
+			if (ballSpeedX > SPEED_LIMIT_X) { ballSpeedX= SPEED_LIMIT_X }
+			ballSpeedY *= -1.005;	
+		}
+	}
+	//funkcja trigerrowana przy uderzeniu kulki w cegielke
+	// ustawia cegielke na false odejmuje jeden z licznika i wyswietla w konsoli tymczasowo
+	function removeBrick(brickID) {
+		if (brickGrid[brickID]==true) {
+			brickGrid[brickID] = false;
+			bricksLeft--; console.log(bricksLeft);
+		}
+	}
+	function ballBrickHandling() { // zajmuje sie odbijaniem pilki od cegiel
+		//pilka i ceglieklki
+		var	colUnderBall = Math.floor(ballX/BRICK_WIDTH);
+		var rowUnderBall = Math.floor(ballY/BRICK_HEIGHT);
+		var	brickUnderBall = rowColToArrayIndex(colUnderBall, rowUnderBall);
+
+		var	PrevColUnderBall = Math.floor((ballX-ballSpeedX)/BRICK_WIDTH);
+		var PrevRowUnderBall = Math.floor((ballY-ballSpeedY)/BRICK_HEIGHT);
+		var	PrevBrickUnderBall = rowColToArrayIndex(PrevColUnderBall, PrevRowUnderBall);
+
+		var ballIsOnBrickGrid = false;
+		if ( colUnderBall>=0 && rowUnderBall>=0 && colUnderBall<BRICK_COLS && rowUnderBall<BRICK_ROWS ) ballIsOnBrickGrid=true;
+		// jesli brickunderball
+		if ( brickGrid[brickUnderBall] && ballIsOnBrickGrid ) {
+			// jak pilka pokryje sie z klockiem ktory jest true to na false
+			removeBrick(brickUnderBall);
+			// jesli pilka poprzednio znajdowala sie w innnej kolumnie to odbij x
+			var testAdone = false;
+			var testBdone = false;
+			if (PrevColUnderBall!=colUnderBall) {
+				var prevBrick1 = rowColToArrayIndex(colUnderBall, PrevRowUnderBall);
+				if (brickGrid[prevBrick1]) { 
+					ballSpeedY *= -1;
+					testAdone=true;
+					removeBrick(prevBrick1);
+					console.log("2x COMBO");
+				}
+				ballSpeedX *= -1; 
+			}
+			// jesli pilka poprzednio znajdowala sie w innym wierszu to odbij y
+			if (PrevRowUnderBall!=rowUnderBall) {
+				prevBrick2 = rowColToArrayIndex(PrevColUnderBall, rowUnderBall);
+				if (brickGrid[prevBrick2]==true) {
+					ballSpeedX *= -1;
+					testBdone=true;
+					removeBrick(prevBrick2);
+					console.log("2x COMBO");
+				}
+				ballSpeedY *= -1;
+			}
+			// armpit case.  wiec tutaj odbija sie X i Y i rozwala wszystkie 3 w kącie
+			if (testAdone && testBdone) { 
+				ballSpeedX *= -1; ballSpeedY *= -1; // odbicie od kata wewnetrznego
+				removeBrick( rowColToArrayIndex(PrevColUnderBall, rowUnderBall) );
+				removeBrick( rowColToArrayIndex(colUnderBall, PrevRowUnderBall) );
+				console.log("3x COMBO");
+			}
+		}
+	}
+	// move everything jest wywolywane co jedna klatke gry razem z draw everythng
+	function moveEverything() {
+		ballHandling();
+		ballPaddleHandling();
+		ballBrickHandling();
+	}
+	// wszystkie wywolania rysowania co kazda klatke
+	function drawEverything() {
+		// tlo
+		drawRect(0, 0, canvas.width, canvas.height, 'black');
+		// kulka
+		drawArc(ballX, ballY, ballSize, '#6666FF');
+		// paddle
+		drawRect(paddleX, canvas.height-PADDLE_DIST_FROM_EDGE, PADDLE_WIDTH, PADDLE_HEIGHT, '#FFFFFF');
+		// draw brick
+		drawBricks();
+		//wyswietlananie koordynatow przy kursorze oraz ID array po drukropku
+		drawText(Math.floor(mouseX/BRICK_WIDTH)+" "+Math.floor(mouseY/BRICK_HEIGHT)+":"+brickUnderMouse, mouseX+4, mouseY-2, 'yellow');
+		//wyswietlanie predkosci pionowej kulki
+		canvasContext.fillText(ballSpeedX+" "+ballSpeedY, 40, 20);
+	}
+	// funkcja rysujaca kola (srodekX, srodekY, promienKola, kolor)
+	function drawArc(drawX, drawY, drawRadius, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.beginPath();
+		// dane do .arc (pozycjax, pozycjay, promien kola, )
+		canvasContext.arc(drawX, drawY, drawRadius, 0, Math.PI*2, true);
+		canvasContext.fill();
+	}
+	// funkcja rysujaca prostokaty na stronie (pozycjaX, pozycjaY, szerokosc, wysokosc, kolor)
+	function drawRect(drawX, drawY, drawWidth, drawHeight, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillRect(drawX, drawY, drawWidth, drawHeight);
+	}
+	// funkcja rysujaca text (tekst, pozycja y , pozycja x)
+	function drawText(drawText, drawX, drawY, drawColor) {
+		canvasContext.fillStyle = drawColor;
+		canvasContext.fillText(drawText, drawX, drawY);
+	}
+	//funkcja zwracajaca index brick na podstawie kolumny i wiersza
+	function rowColToArrayIndex(col,row) {
+		return BRICK_COLS * row + col;
+	}
+	function drawBricks () {
+		for (var eachRow=0; eachRow<BRICK_ROWS; eachRow++) {
+			for (var eachCol=0; eachCol<BRICK_COLS; eachCol++) {
+				
+				var arrayIndex = rowColToArrayIndex(eachCol, eachRow);
+
+				if (brickGrid[arrayIndex] == true) {
+					drawRect(BRICK_WIDTH*eachCol,BRICK_HEIGHT*eachRow , BRICK_WIDTH-BRICK_GAP,BRICK_HEIGHT-BRICK_GAP, 'blue');
+				}
+			} // second for loop
+		} // first for loop
+	} // close drawbricks fuunc
+
+</script>
+
+</body>
+
+</html>

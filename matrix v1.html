@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body{ padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" src="libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>Matrix</title>  
+<script language="javascript" type="text/javascript">
+var symbols = [];
+var cols;
+var txtSize = 20;
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+
+	generateStreams(0.1,1.5);
+
+}
+function generateStreams(a, b) {
+	cols = floor(width/txtSize);
+
+	var startx=0;
+	while (startx<=width) {
+		var temp = new symbolClass();
+		temp.z = sqrt(random(a, b));
+		temp.x = startx;
+		temp.y = random(height);
+		temp.vel = 4*temp.z;
+		temp.value = randomSymbol();
+		var kidsCount = round(random(5,15));
+		for(var i=0; i<=kidsCount; i++) {
+			temp.kids[i]=randomSymbol();
+		}
+		symbols.push(temp);
+		startx+=(txtSize*temp.z)*0.8;
+	}
+}
+
+function draw() {
+	background(31);
+
+	for(var i=0; i<symbols.length; i++) {
+		symbols[i].draw();
+		symbols[i].update();
+	}
+}
+
+function symbolClass() {
+	this.x;
+	this.y;
+	this.z = 1;
+	this.vel;
+	this.value;
+	this.kids = [];
+
+	this.draw = function() {
+		textSize(txtSize*this.z);
+		fill(255, 255, 255, 230);
+		text(this.value, this.x, this.y)
+
+		for(var i=0; i<this.kids.length; i++) {
+			textSize(txtSize*this.z);
+			fill(0, 255, 80, 230-(i/this.kids.length*200));
+			text(this.kids[i], this.x, this.y-((1+i)*txtSize*this.z));
+
+			if(random()>0.99) { this.kids[i] = randomSymbol(); }
+		}
+	}
+	this.update = function() {
+		this.y+=this.vel;
+		this.vel+=0.02;
+		if(this.y>height+this.kids.length*txtSize*this.z) { 
+			this.y = 0;
+			this.vel=random(2, 9)*this.z;
+			this.value = randomSymbol();
+			for(var i=0; i<this.kids.length; i++) {
+				this.kids[i] = randomSymbol();
+			}
+		}
+		if(random()>0.98) { this.value = randomSymbol(); }
+	}
+}
+function randomSymbol() { return String.fromCharCode(0x30A0+round(random(0,96))); }
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+</body>
+</html>
