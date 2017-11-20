@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" type="text/javascript" src="libraries/jquery-3.2.1.js"></script>
+<title>TO COPY</title>  
+
+<style type="text/css">
+	form {
+		padding: 10px;
+		margin: 5px;
+	}
+	form label {
+
+	}
+</style>
+
+<script language="javascript" type="text/javascript">
+
+var abc = ' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'.split('');
+//var abc = ' abcdefghijklmnopqrstuvwxyz'.split('');
+//abc.indexOf('a');
+
+/* var p = 17;
+var q = 23;
+var n = p*q; // 391
+var m = 176;
+var r = 3;
+var s = 59; */
+
+var p = 11;
+var q = 13;
+var n = p*q;
+var m = nww(p-1, q-1);
+var r = 7;
+var s = uniques(r, m);
+
+function setup() {
+	noCanvas();
+	$('#p').val(p);
+	$('#q').val(q);
+	$('#n').val(n);
+	$('#m').val(m);
+	$('#r').val(r);
+	$('#s').val(s);
+
+	code();
+}
+
+function code() {
+	var str = $('#textToCode').val();
+
+	var values = [];
+	var result = "";
+	for(var i=0; i<str.length; i++) {
+		//values.push( str.charCodeAt(i) );
+		values.push( abc.indexOf(str[i]) );
+		result += values[values.length-1] + " ";
+	}
+	$('#result').html(result);
+
+	var valuesCoded = [];
+	var resultCoded = "";
+	for(var i=0; i<values.length; i++) {
+		var current = Math.pow(values[i], r)%n;
+		valuesCoded.push( current );
+		resultCoded += current.toString() + " ";
+	}
+	$('#resultCoded').html(resultCoded);
+
+
+	var resultDecoded = "";
+	for(var i=0; i<valuesCoded.length; i++) {
+		resultDecoded += Math.pow(valuesCoded[i], s)%n + " ";
+	}
+	$('#resultDecoded').html(resultDecoded);
+}
+
+function nwd(a, b) {
+	var pom;
+	while (b!=0) {
+		pom = b;
+		b = a%b;
+		a = pom;
+	}
+	return a;
+}
+
+function nww(a, b) {
+	return a/nwd(a,b)*b;
+}
+
+function uniques(r, m) {
+	var s=1;
+	while (true) {
+		if( (r*s)%m==1 ) { return s; }
+		s++;
+	}
+}
+
+function calcCoprimes(n) {
+	var result = "";
+	for(var i=0; i<n; i++) {
+		if (nwd(i, n)==1) {
+			result += i.toString();
+			result += " ";
+		}
+	}
+	return result;
+}
+
+</script>
+
+
+</head>
+
+<body bgcolor="#99AAFF">
+
+<table>
+	<tr><td>p</td><td><input type="text" id="p"></td></tr>
+	<tr><td>q</td><td><input type="text" id="q"></td></tr>
+	<tr><td>n</td><td><input type="text" id="n"></td></tr>
+	<tr><td>m</td><td><input type="text" id="m"></td></tr>
+	<tr><td>r</td><td><input type="text" id="r"></td></tr>
+	<tr><td>s</td><td><input type="text" id="s"></td></tr>
+</table>
+<p>
+	<input type="text" id="textToCode" value="qwert">
+	<button onclick="code()">Code!</button>	
+</p>
+<h5>Result:</h5>
+<p id="result"></p>
+<h5>Result Coded:</h5>
+<p id="resultCoded"></p>
+<h5>Result Decoded:</h5>
+<p id="resultDecoded"></p>
+
+
+</body>
+</html>

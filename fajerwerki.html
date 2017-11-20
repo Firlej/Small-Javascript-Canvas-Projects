@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> body{ padding: 0; margin: 0; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js">
+</script>
+<title>Fajerwerki</title>
+<script type="text/javascript">
+
+var rects = [];
+var balls = [];
+var licznik = 0;
+
+function setup() {
+	createCanvas(800, 600);
+
+	for(var i=0; i<5; i++) {
+		rects.push( new fw() );
+	}
+	noStroke();
+}
+
+function draw() {
+	background(31);
+
+	for(var i=rects.length-1; i>=0; i--) {
+		rects[i].update();
+		rects[i].display();
+		if (rects[i].dead) {
+			rects.splice(i, 1);
+		}
+	}
+	for(var i=balls.length-1; i>=0; i--) {
+		balls[i].update();
+		balls[i].display();
+		if (balls[i].dead) {
+			balls.splice(i, 1);
+		}
+	}
+	if(licznik%5==0) { rects.push( new fw() ); }
+	licznik++;
+}
+
+function keyPressed() {
+	noLoop();
+}
+
+var stopVel = 1.5;
+function fw() {
+	this.w = 3;
+	this.h = 30;
+	this.x = Math.random()*(width-this.w);
+	this.y = height-this.h;
+	this.vel = 2 + Math.random() * 5.5;
+	this.acc = 0.987;
+	this.dead = false;
+
+	this.color = {
+		r: Math.floor(Math.random()*226)+30,
+		g: Math.floor(Math.random()*226)+30,
+		b: Math.floor(Math.random()*226)+30
+	}
+
+	// Marcin = new Uczen()
+	// Marcin++;
+	this.display = function() {
+		fill(255); 
+		rect(this.x, this.y, this.w, this.h);
+	}
+	this.update = function() {
+		if(this.vel<stopVel) {
+			this.dead = true;
+			for(var i =0; i<10; i++) {
+				balls.push(new ball(this.x, this.y, this.color));
+			}
+		}
+		this.vel *= this.acc;
+		this.y -= this.vel;
+	}
+}
+
+var gravity = 0.05;
+function ball(x, y, c) {
+	this.x = x;
+	this.y = y;
+	this.r = 10;
+	this.vx = random(-1, 1);
+	this.vy = random(-1, 1);
+	this.dead = false;
+	var p = 30;
+	this.color = {
+		r: c.r += floor(random(-p, p)),
+		g: c.g += floor(random(-p, p)),
+		b: c.b += floor(random(-p, p))
+	};
+
+	this.display = function() {
+		fill(this.color.r, this.color.g, this.color.b);
+		ellipse(this.x, this.y, this.r, this.r);
+	}
+	this.update = function() {
+		this.x += this.vx;
+		this.y += this.vy;
+
+		this.vy += gravity;
+
+		this.r *= 0.987;
+		if (this.r<1 || this.x<0 || this.x>width || this.y>height) {
+			this.dead = true;
+		}
+		
+	}
+}
+
+</script>  
+
+</head>
+
+<body bgcolor="#99AAFF">
+
+</body>
+</html>
+

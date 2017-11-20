@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Voronoi</title>
+<style type="text/css">
+	html, body, div, html.touch body {
+		padding: 0px;
+		margin: 0px;
+		overflow: hidden;
+		font-family: "Lucida Console", Times, serif;
+		touch-action: none;
+	}
+</style>
+<script type="text/javascript">
+var points = [];
+var colors = [];
+
+var circles = [];
+var triangles = [];
+
+var value = 1;
+
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+
+	for (var i = 0; i < 40; i++) {
+		points.push( createVector(floor(random(width)), floor(random(height))) );
+		colors.push( color( floor(random(256)) , floor(random(256)), floor(random(256)) ));
+	}
+	noLoop();
+	background(255);
+}
+
+function draw() {
+	background(255);
+
+	loadPixels();
+	for (var x=0; x<width; x++) {
+		for (var y=0; y<height; y++) {
+			var min1 = Infinity;
+			var min2 = Infinity;
+			var min3 = Infinity;
+			var ind1 = -1;
+			var ind2 = -1;
+			var ind3 = -1;
+			for (var i = 0; i < points.length; i++) {
+				var distance = dist(x, y, points[i].x, points[i].y);
+				if (distance<min1) {
+					min3 = min2;
+					ind3 = ind2;
+					min2 = min1;
+					ind2 = ind1;
+					min1 = distance;
+					ind1 = i;
+				}
+			}
+			var avg = average(min1, min2, min3);
+			if (abs(avg-min1)<value && abs(avg-min2)<value && abs(avg-min3)<value) {
+				circles.push({x: x, y: y, r: avg*2});
+				triangles.push([
+					createVector(points[ind1].x, points[ind1].y),
+					createVector(points[ind2].x, points[ind2].y),
+					createVector(points[ind3].x, points[ind3].y),
+				])
+			}
+			set(x,y, colors[ind1]);
+		}
+	}
+	//console.log(circles);
+	updatePixels();
+	fill(255);
+	for (var i = 0; i < points.length; i++) {
+		ellipse(points[i].x, points[i].y, 5, 5);
+	}
+
+	for (var i = triangles.length - 1; i >= 0; i--) {
+		fill( color( floor(random(256)) , floor(random(256)), floor(random(256)), floor(100) ) );
+		vectors = triangles[i];
+		beginShape();
+			for (var j=0; j<vectors.length; j++) {
+				ellipse(vectors[j].x, vectors[j].y, 5, 5); 
+				vertex(vectors[j].x, vectors[j].y); 
+			}
+		endShape(CLOSE);
+	}
+	for (var i = triangles.length - 1; i >= 0; i--) {
+		fill('red');
+		vectors = triangles[i];
+		ellipse(vectors[0].x, vectors[0].y, 5, 5);
+	}
+	noFill();
+	for (var i = 0; i < circles.length; i++) {
+		//ellipse(circles[i].x, circles[i].y, circles[i].r, circles[i].r);
+	}
+}
+function average(a, b, c) {
+	return (a+b+c)/3;
+}
+
+</script>
+
+</head>
+
+<body bgcolor="#1F1F1F">
+	<script type="text/javascript" src="libraries/p5.js"></script>
+</body>
+
+</html>

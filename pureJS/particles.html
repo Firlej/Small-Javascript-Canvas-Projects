@@ -78,8 +78,15 @@
 		var tempBall = new ballClass();
 		tempBall.X = randomX * canvas.width;
 		tempBall.Y = randomY * canvas.height/4;
-		tempBall.velX = 3 - Math.random() * 6; 
-		tempBall.velY = 3 - Math.random() * 6; 
+		rvx = 3 - Math.random() * 6;
+		rvy = 3 - Math.random() * 6;
+		c = Math.sqrt(rvx*rvx + rvy*rvy);
+		ch = c / 3*Math.sqrt(2);
+		rvx /= ch; 
+		rvy /= ch; 
+
+		tempBall.velX = rvx*(Math.random()*0.8+0.2); 
+		tempBall.velY = rvy*(Math.random()*0.8+0.2); 
 		tempBall.lifeSpan = 60 + Math.floor( Math.random() * 1 * 60 );
 
 		var random = Math.random();
@@ -115,6 +122,10 @@
 		fps =  Math.floor((1000/(thisLoop - lastLoop)).toString());
 		lastLoop = thisLoop;
 		drawText(fps, 3, 10, 'white');
+	}
+
+	function dist(x1, y1, x2, y2) {
+		return Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
 	}
 
 	function drawArc(drawX, drawY, drawRadius, drawColor) {

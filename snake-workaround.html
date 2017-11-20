@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> body{ padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" src="libraries/p5.dom.js"></script>
+<!--<script language="javascript" src="libraries/p5.sound.js"></script>-->
+<title>TO COPY</title>  
+<script language="javascript" type="text/javascript">
+
+var grid = [];
+var allsize = 1200;
+var w = 30;
+var ww = allsize/w;
+var hh = allsize/w;
+var snk;
+
+var ptx, pty;
+var tx, ty;
+
+var LEFT=37; var UP=38; var RIGHT=39; var DOWN=40;
+
+function setup() {
+	createCanvas(windowWidth, windowHeight);
+	snk = new snake();
+	//noLoop();
+	ptx=tx = -snk.head.x*w+width/2;
+	pty=ty = -snk.head.y*w+height/2;
+}
+function draw() {
+	background(31);
+	push();
+		tx = lerp(ptx, -snk.head.x*w+width/2, 0.01);
+		ty = lerp(pty, -snk.head.y*w+height/2, 0.01);
+		translate(tx, ty);
+		ptx = tx;
+		pty = ty;
+		drawBackground();
+		snk.update();
+	pop();
+
+	frameRate(10);
+
+}
+
+function keyPressed() {
+	console.log(keyCode)
+	switch(keyCode) {
+		case 32: noLoop(); break;
+		case 37: snk.setDir(-1, 0); break;
+		case 38: snk.setDir(0, -1); break;
+		case 39: snk.setDir(1, 0); break;
+		case 40: snk.setDir(0, 1); break;
+	}
+}
+
+function mousePressed() {
+	redraw();
+}
+
+function snake() {
+	this.head = createVector(10, 10)
+	this.tail = [
+		createVector(this.head.x-1, this.head.y),
+		createVector(this.head.x-2, this.head.y),
+		createVector(this.head.x-3, this.head.y),
+		createVector(this.head.x-4, this.head.y),
+		createVector(this.head.x-5, this.head.y),
+		createVector(this.head.x-5, this.head.y+1),
+		createVector(this.head.x-5, this.head.y+2),
+		createVector(this.head.x-5, this.head.y+3),
+		createVector(this.head.x-5, this.head.y+4),
+		createVector(this.head.x-5, this.head.y+5),
+		createVector(this.head.x-5, this.head.y+6),
+		createVector(this.head.x-5, this.head.y+7),
+		createVector(this.head.x-5, this.head.y+8),
+	];
+	this.dir = createVector(1, 0);
+
+	this.setDir = function(x, y) {
+		this.dir.x = x;
+		this.dir.y = y;
+	}
+
+	this.uncompressTail = function() {
+		for(var i=this.tail.length-1; i>=0; i--) {
+			t1 = this.tail[i].copy();
+			t2 = this.head.copy();
+			if (i>0) { t2 = this.tail[i-1].copy(); }
+			if (t1.x == t2.x && abs(t1.y-t2.y)>1) {
+				var v = createVector(this.tail[i].x, this.tail[i].y+1)
+				if (t1.y>t2.y) { v.y-=2; }
+				this.tail.splice(i, 0, v);
+				i++	
+			} else if (t1.y == t2.y && abs(t1.x-t2.x)>1) {
+				var v = createVector(this.tail[i].x+1, this.tail[i].y)
+				if (t1.x>t2.x) { v.x-=2; }
+				this.tail.splice(i, 0, v);
+				i++;		
+			}
+		}
+	}
+	this.compressTail = function() {
+		if (this.tail.length<2) { return; }
+		t = this.tail.slice();
+		for(var i=t.length-2; i>=1; i--) {
+			if (t[i+1].x == t[i-1].x || t[i+1].y == t[i-1].y) {
+				this.tail.splice(i, 1);
+			}
+		}
+		if (t[1].x == this.head.x || t[1].y == this.head.y) {
+			this.tail.splice(0, 1);
+		}
+	}
+
+	this.update = function() {
+		this.uncompressTail();
+		//
+		for (var i=this.tail.length-1; i>=1; i--) {
+			this.tail[i] = this.tail[i-1].copy();
+		}
+		this.tail[0] = this.head.copy();
+		this.head.add(this.dir);
+		//
+		snk.draw();
+		//
+		this.compressTail();
+	}
+
+	this.draw = function() {
+		fill(200, 150, 150);
+		for (var i=this.tail.length-1; i>=0; i--) {
+			rect(this.tail[i].x*w, this.tail[i].y*w, w, w);
+		}
+		fill(255, 150, 150);
+		rect(this.head.x*w, this.head.y*w, w, w);
+	}
+}
+
+function drawBackground() {
+
+	fill(150, 100, 200);
+	for (var x=0; x<allsize; x+=w) {
+		for (var y=0; y<allsize; y+=w) {
+			rect(x, y, w, w);
+		}
+	}
+	fill(255, 0, 0, 100);
+	noStroke();
+	rect(-w/2   , -w/2		 , allsize+w, w/2);
+	rect(allsize, 0-w/2			 , w/2		, allsize+w);
+	rect(-w/2   , allsize, allsize+w, w/2);
+	rect(0-w/2  , 0-w/2			 , w/2		, allsize+w);
+}
+
+
+
+</script>
+</head>
+
+<body bgcolor="#99AAFF">
+
+	
+
+</body>
+</html>

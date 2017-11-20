@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<script language="javascript" type="text/javascript" src="libraries/jquery-3.2.1.js"></script>
+<title>Chat test</title>
+
+<style type="text/css">
+	#chatWrap {
+		position: absolute;
+		/*left: 1000px;*/
+	}
+	#chatbox {
+		background-color: rgb(130, 150, 240);
+		/*position: absolute;*/
+		width: 300px;
+		height: 200px;
+		overflow-y: scroll;
+		padding: 3px;
+		border: 1px solid black;
+	}
+	#chatbox p {
+		display: block;
+		padding: 1px;
+		padding-left: 5px;
+		margin: 3px;
+		border-left: 1px solid black;
+	}
+</style>
+
+<script type="text/javascript">
+	function setup() {
+		noCanvas();
+		for(var i=0; i<20; i++) {
+			$('#chatbox').append("<p>Text wertyhjhtrefghjhgrerghferfghrfgs"+i+"</p>");
+		}
+	}
+	var leftoffset=500;
+	function draw() {
+
+	}
+	function keyPressed() {
+		if (keyCode==37) {
+			$('#chatbox').append("<p>Text "+Math.random()+"</p>");
+			scroll();
+		}
+	}
+	function mousePressed() {
+		//$('#chatbox').animate({ scrollTop: $('#scrollable').prop('scrollHeight')}, 1000);
+	}
+
+	var ch = $('#chatbox');
+	function scroll() {
+		$('#chatbox').animate({ scrollTop: $('#chatbox').prop('scrollHeight')}, 500);
+	}
+
+</script>  
+
+</head>
+
+<body bgcolor="#99AAFF">
+	<div id="chatWrap">
+		<div id="chatbox">
+			<p>Text</p>
+			<p>Text</p>
+			<p>Text</p>
+		</div>
+		<button id="scroll" onclick="scroll()">Scroll!!!!</button>	
+	</div>
+	
+
+</body>
+</html>
+

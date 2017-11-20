@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style> html, body { padding: 0; margin: 0; overflow: hidden; } </style>
+<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
+<title>Net</title>  
+<script language="javascript" type="text/javascript">
+
+var balls = [];
+
+function setup() {
+
+    createCanvas(800, 600);
+    stroke(255, 50);
+    for(var i=0; i<20; i++) {
+        balls.push(new ball());
+    }
+}
+function draw() {
+    background(51);
+
+    for(var i=0; i<balls.length; i++) {
+        balls[i].move();
+        ellipse(balls[i].x, balls[i].y, 10, 10);
+    }
+
+    
+    for(var i=0; i<balls.length; i++) {
+        var b1 = balls[i];
+        for(var j=i+1; j<balls.length; j++) {
+            if (i==j) {
+                continue;
+            }
+            var b2 = balls[j];
+            if (distt(b1.x, b1.y, b2.x, b2.y)<300) {
+                line(b1.x, b1.y, b2.x, b2.y);
+            }
+        }
+    }
+
+}   
+
+function mouseMoved() {
+    for(var i=0; i<balls.length; i++) {
+        balls[i].x+=10;
+    }
+}
+
+function distt(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2));
+}
+
+function ball() {
+    this.x = Math.random()*800;
+    this.y = Math.random()*600;
+    this.vx = Math.random()*2-1;
+    this.vy = Math.random()*2-1;
+}
+ball.prototype.move = function() {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    if (this.x>width || this.x<0) { this.vx *= -1; }
+    if (this.y>height || this.y<0) { this.vy *= -1; }
+    
+}
+
+
+</script>
+</head>
+
+<body bgcolor="#1f1f29">
+</body>
+</html>
