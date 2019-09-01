@@ -1,0 +1,171 @@
+<!-- https://www.youtube.com/watch?v=kft1AJ9WVDk -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<style>
+		body {
+			padding: 0;
+			margin: 0;
+			overflow: hidden;
+		}
+	</style>
+	<script language="javascript" type="text/javascript" src="libraries/oskar.js"></script>
+	<title>Perceptron</title>
+
+	<script type="text/javascript">
+
+		function sigmoid(x) {
+			return 1 / (1 + Math.pow(Math.E, -x));
+		}
+
+		function sigmoid_derivative(x) {
+			return x * (1 - x);
+		}
+
+		function f(x) {
+			return 0.3 * x + 0.2;
+		}
+
+		let p;
+
+		let points = [];
+
+		function setup(callback) {
+
+			resizeCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
+
+			p = new Perceptron(3);
+
+			for (let i = 0; i < 5000; i++) {
+				points.push(new Point());
+			}
+
+			callback();
+		}
+
+		function draw() {
+			background(rgb(50, 50, 50));
+			// clearBackground();
+
+			lineWidth(5);
+			stroke(rgba(0, 0, 0, 1));
+			let p1 = new Point(-1, f(-1));
+			let p2 = new Point(1, f(1));
+			line(p1.px, p1.py, p2.px, p2.py);
+
+			noStroke();
+
+			fill(rgba(255, 100, 100, 0.1));
+			beginShape();
+			vertex(p1.px, p1.py);
+			vertex(0, 0);
+			vertex(width, 0);
+			vertex(p2.px, p2.py);
+			endShape();
+
+			fill(rgba(100, 255, 100, 0.1));
+			beginShape();
+			vertex(p1.px, p1.py);
+			vertex(0, height);
+			vertex(width, height);
+			vertex(p2.px, p2.py);
+			endShape();
+
+			stroke(rgba(0, 0, 0, 1));
+			let p3 = new Point(-1, p.guessY(-1));
+			let p4 = new Point(1, p.guessY(1));
+			line(p3.px, p3.py, p4.px, p4.py);
+
+			for (const point of points) {
+				p.train(point.input, point.label);
+				point.draw();
+			}
+		}
+
+		class Perceptron {
+
+			constructor(n) {
+				this.weights = [];
+				for (let i = 0; i < n; i++) {
+					this.weights.push(random(-1, 1));
+				}
+			}
+
+			guess(inputs) {
+				let sum = 0;
+				for (let i = 0; i < inputs.length; i++) {
+					sum += inputs[i] * this.weights[i];
+				}
+				return sign(sum);
+			}
+
+			train(inputs, target) {
+				let guess = this.guess(inputs);
+				let error = target - guess;
+
+				for (let i = 0; i < this.weights.length; i++) {
+					this.weights[i] += error * inputs[i] * 0.000001;
+				}
+			}
+
+			guessY(x) {
+				return -this.weights[2] / this.weights[1] - this.weights[0] / this.weights[1] * x;
+			}
+		}
+
+		class Point {
+
+			constructor(x_, y_) {
+				this.x = x_ ? x_ : random(-1, 1);
+				this.y = y_ ? y_ : random(-1, 1);
+				this.b = 1;
+
+				this.label = this.y > f(this.x) ? 1 : -1;
+				this.input = [this.x, this.y, this.b];
+
+				this.px = map(this.x, -1, 1, 0, width);
+				this.py = map(this.y, -1, 1, height, 0);
+			}
+
+			draw() {
+				stroke(0);
+				fill(rgb(0, 0, 0));
+				// if (this.label == 1) {
+				// 	fill(rgb(255, 255, 255));
+				// }
+				ellipse(this.px, this.py, 5, 5);
+				if (p.guess(this.input) == this.label) {
+					fill(rgb(50, 200, 50));
+					ellipse(this.px, this.py, 3, 3);
+				}
+
+			}
+		}
+
+		function sign(x) {
+			return x >= 0 ? 1 : -1;
+		}
+
+		function keyPressed() {
+			// train = !train;
+		}
+
+		function mousePressed() {
+			for (const point of points) {
+				p.train(point.input, point.label);
+			}
+		}
+	</script>
+
+</head>
+
+<body bgcolor="#99AAFF">
+
+	<canvas id="canvas" width="0" height="0"></canvas>
+
+</body>
+
+</html>

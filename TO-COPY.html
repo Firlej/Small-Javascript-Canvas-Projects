@@ -1,27 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8" />
-<style> body{ padding: 0; margin: 0; } </style>
-<script language="javascript" type="text/javascript" src="libraries/p5.js"></script>
-<title>TO COPY</title>
-<script type="text/javascript">
+	<meta charset="UTF-8" />
+	<style>
+		html,
+		body {
+			padding: 0;
+			margin: 0;
+			overflow: hidden;
+		}
+	</style>
+	<script language="javascript" type="text/javascript" src="libraries/oskar.js"></script>
 
+	<title>TO COPY</title>
 
-function setup() {
-	createCanvas(100, 100);
-}
+	<script type="text/javascript">
 
-function draw() {
-	background(31);
-}
+		function setup(callback) {
+			resizeCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
 
-</script>  
+			callback();
+		}
+
+		function draw() {
+			background(rgb(50, 50, 50));
+		}
+	</script>
 
 </head>
 
 <body bgcolor="#99AAFF">
 
-</body>
-</html>
+	<canvas id="canvas" width="0" height="0"></canvas>
 
+</body>
+
+</html>
