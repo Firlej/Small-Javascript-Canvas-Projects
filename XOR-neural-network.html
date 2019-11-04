@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<style>
+		html,
+		body {
+			padding: 0;
+			margin: 0;
+			overflow: hidden;
+		}
+	</style>
+	<script language="javascript" type="text/javascript" src="libraries/oskar.js"></script>
+
+	<title>XOR Neural Network</title>
+
+	<script type="text/javascript">
+		let nn;
+
+		let data = [
+			[
+				[1, 1],
+				[0]
+			],
+			[
+				[1, 0],
+				[1]
+			],
+			[
+				[0, 1],
+				[1]
+			],
+			[
+				[0, 0],
+				[0]
+			],
+		];
+
+		let data2 = [];
+
+		for (let i = 0; i < data.length; i++) {
+			for (let j = 0; j < data.length; j++) {
+				let item = [];
+				item.push(data[i][0].concat(data[j][0]));
+				item.push(data[i][1].concat(data[j][1]));
+				data2.push(item);		
+			}
+		}
+
+		let neurons = [
+			[],
+			[],
+			[]
+		];
+
+		function setup(callback) {
+			resizeCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
+
+			nn = new NeuralNetwork(2, 2, 1);
+
+			// for (let i = 0; i < 50000; i++) {
+			// 	trainOnce();
+			// }
+			// check();
+			// console.log("==============")
+			// for (let i = 0; i < 900000; i++) {
+			// 	trainOnce();
+			// }
+			// check();
+			// console.log("==============")
+			// for (let i = 0; i < 9000000; i++) {
+			// 	trainOnce();
+			// }
+			// check();
+			// console.log("==============")
+			// for (let i = 0; i < 90000000; i++) {
+			// 	trainOnce();
+			// }
+			// check();
+			// console.log("==============")
+
+			// nn.weights_ih.log();
+			// nn.weights_ho.log();
+			// nn.bias_h.log();
+			// nn.bias_o.log();
+
+			console.log(nn);
+
+			let input_pos = width / 3;
+
+			for (let i = 0; i < nn.input_nodes; i++) {
+				neurons[0].push(new Neuron(input_pos * 0.5, height / (nn.input_nodes + 1) * (i + 1)));
+			}
+			for (let i = 0; i < nn.hidden_nodes; i++) {
+				neurons[1].push(new Neuron(input_pos * 1.5, height / (nn.hidden_nodes + 1) * (i + 1)));
+			}
+			for (let i = 0; i < nn.output_nodes; i++) {
+				neurons[2].push(new Neuron(input_pos * 2.5, height / (nn.output_nodes + 1) * (i + 1)));
+			}
+
+
+			callback();
+		}
+
+		function draw() {
+			background(rgb(50, 50, 50));
+
+			for (let i = 0; i < 100; i++) {
+				trainOnce();
+			}
+
+			fill(rgb(0,0,0));
+			for (let i = 0; i < neurons.length; i++) {
+				for (let j = 0; j < neurons[i].length; j++) {
+					neurons[i][j].draw();
+				}
+			}
+
+			lineWidth(3);
+			for (let i = 0; i < neurons[0].length; i++) {
+				let a = neurons[0][i];
+				for (let j = 0; j < neurons[1].length; j++) {
+					let b = neurons[1][j];
+
+					let m = nn.weights_ih.copy().each(sigmoid);
+					// m.log();
+					let val = map(m.data[j][i], 0, 1, 0, 255);
+					stroke(rgb(val, 255 - val, 0));
+					line(a.x, a.y, b.x, b.y);
+				}
+			}
+			for (let i = 0; i < neurons[1].length; i++) {
+				let a = neurons[1][i];
+				for (let j = 0; j < neurons[2].length; j++) {
+					let b = neurons[2][j];
+
+					let m = nn.weights_ho.copy().each(sigmoid);
+					// m.log();
+					let val = map(m.data[j][i], 0, 1, 0, 255);
+					stroke(rgb(val, 255 - val, 0));
+					line(a.x, a.y, b.x, b.y);
+				}
+			}
+
+			// rect(100, 100, 200, 200);
+		}
+
+		function mousePressed() {
+			check();
+		}
+
+		function check() {
+			console.log(nn.predict(data[0][0]));
+			console.log(nn.predict(data[1][0]));
+			console.log(nn.predict(data[2][0]));
+			console.log(nn.predict(data[3][0]));
+		}
+
+		function trainOnce() {
+			let ele = data.random();
+			nn.train(ele[0], ele[1]);
+		}
+
+		class Neuron {
+			constructor(x, y, layer, index) {
+				this.x = x;
+				this.y = y;
+				this.r = 20;
+				this.layer = layer;
+				this.index = index;
+			}
+
+			draw() {
+				ellipse(this.x, this.y, this.r, this.r);
+			}
+		}
+	</script>
+
+</head>
+
+<body bgcolor="#99AAFF">
+
+	<canvas id="canvas" width="0" height="0"></canvas>
+
+</body>
+
+</html>
